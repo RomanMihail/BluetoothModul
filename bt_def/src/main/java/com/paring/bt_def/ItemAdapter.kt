@@ -31,6 +31,7 @@ class ItemAdapter(private val listener: Listener) : ListAdapter<ListItem, ItemAd
             device = item
             tvNameBt.text = item.name
             tvMacBt.text = item.mac
+            if (item.isChecked) adapter.selectCheckBox(checkBox)
         }
     }
 
