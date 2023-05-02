@@ -1,5 +1,6 @@
 package com.paring.bt_def
 
+import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -8,13 +9,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
@@ -26,6 +27,7 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
     private var bAdapter: BluetoothAdapter? = null
     private lateinit var binding: FragmentListBinding
     private lateinit var btLauncher: ActivityResultLauncher<Intent>
+    private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +44,7 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
         binding.imBluetoothOn.setOnClickListener {
             btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         }
+        checkPermissions()
         initRcView()
         registerBtLauncher()
         initBtAdapter()
@@ -97,6 +100,34 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
             }else{
                 Snackbar.make(binding.root, "Блютуз выключен!", Snackbar.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun checkPermissions(){
+        if (!checkBtPermissions()){
+            registerPermissionListener()
+            launchBtPermissions()
+        }
+    }
+
+    private fun launchBtPermissions(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            pLauncher.launch(arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ))
+        }else{
+            pLauncher.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ))
+        }
+    }
+
+    private fun registerPermissionListener(){
+        pLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ){
+
         }
     }
 
