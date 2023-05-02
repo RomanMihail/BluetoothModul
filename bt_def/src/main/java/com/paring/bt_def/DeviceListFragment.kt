@@ -27,6 +27,7 @@ import com.paring.bt_def.databinding.FragmentListBinding
 class DeviceListFragment : Fragment(), ItemAdapter.Listener {
     private var preferences: SharedPreferences? = null
     private lateinit var itemAdapter: ItemAdapter
+    private lateinit var discoveryAdapter: ItemAdapter
     private var bAdapter: BluetoothAdapter? = null
     private lateinit var binding: FragmentListBinding
     private lateinit var btLauncher: ActivityResultLauncher<Intent>
@@ -64,8 +65,11 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
 
     private fun initRcView() = with(binding){
         rcViewPaired.layoutManager = LinearLayoutManager(requireContext())
+        rcViewSearch.layoutManager = LinearLayoutManager(requireContext())
         itemAdapter = ItemAdapter(this@DeviceListFragment)
+        discoveryAdapter = ItemAdapter(this@DeviceListFragment)
         rcViewPaired.adapter = itemAdapter
+        rcViewSearch.adapter = discoveryAdapter
     }
 
     private fun getPairedDevices(){
@@ -75,8 +79,7 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
             deviceList.forEach {
                 list.add(
                     ListItem(
-                        it.name,
-                        it.address,
+                        it,
                         preferences?.getString(BluetoothConstants.MAC, "") == it.address
                     )
                 )
@@ -149,8 +152,8 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
         editor?.apply()
     }
 
-    override fun onClick(device: ListItem) {
-        saveMac(device.mac)
+    override fun onClick(item: ListItem) {
+        saveMac(item.device.address)
     }
 
     @Suppress("DEPRECATION")
@@ -158,6 +161,10 @@ class DeviceListFragment : Fragment(), ItemAdapter.Listener {
         override fun onReceive(p0: Context?, intent: Intent?) {
             if (intent?.action == BluetoothDevice.ACTION_FOUND){
                 val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                val list = mutableSetOf<ListItem>()
+                list.addAll(discoveryAdapter.currentList)
+                if (device != null) list.add(ListItem(device,false))
+                discoveryAdapter.submitList(list.toList())
                 try {
                     Log.d("MyLog", "Device: ${device?.name}")
                 }catch (e: SecurityException){

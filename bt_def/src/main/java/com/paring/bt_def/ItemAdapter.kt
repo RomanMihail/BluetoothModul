@@ -29,8 +29,11 @@ class ItemAdapter(private val listener: Listener) : ListAdapter<ListItem, ItemAd
         }
         fun bind(item: ListItem) = with(b){
             device = item
-            tvNameBt.text = item.name
-            tvMacBt.text = item.mac
+            try {
+                tvNameBt.text = item.device.name
+                tvMacBt.text = item.device.address
+            }catch (e: SecurityException){}
+
             if (item.isChecked) adapter.selectCheckBox(checkBox)
         }
     }
